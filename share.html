@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Resume - AI CV Builder</title>
+
+    <!-- Unified Styling -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        'primary-dark': '#4f46e5',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+        <p class="text-gray-500 font-medium">Loading Document...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center max-w-md bg-white p-8 rounded-xl shadow-lg">
+        <div class="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+            <i data-lucide="alert-circle" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Document Not Found</h2>
+        <p class="text-gray-500 mb-6">The link you are trying to access is invalid or has been removed.</p>
+        <a href="index.html"
+            class="inline-block bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors">Create
+            Your Own CV</a>
+    </div>
+
+    <!-- Expired (Paywall) State -->
+    <div id="expired" class="hidden text-center max-w-lg bg-white p-8 rounded-xl shadow-xl border border-gray-100">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500">
+        </div>
+        <div class="h-16 w-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
+            <i data-lucide="lock" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Access Expired</h2>
+        <p class="text-gray-500 mb-8 leading-relaxed">
+            This document's public link has expired (7-day limit). <br>
+            To continue viewing this premium content, access is required.
+        </p>
+
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-8 text-left">
+            <h3 class="font-bold text-gray-900 text-sm mb-2">What you'll get:</h3>
+            <ul class="space-y-2 text-sm text-gray-600">
+                <li class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-green-500"></i> Full Access to Document
+                </li>
+                <li class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-green-500"></i> Download as PDF
+                </li>
+            </ul>
+        </div>
+
+        <button onclick="handlePurchase()"
+            class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 text-lg transform hover:-translate-y-0.5">
+            Unlock Now <span class="opacity-80 font-normal">($4.99)</span> <i data-lucide="arrow-right"
+                class="w-5 h-5"></i>
+        </button>
+        <p class="text-xs text-gray-400 mt-4">Secure payment via Stripe</p>
+    </div>
+
+    <!-- Resume Content (Using rendered HTML) -->
+    <div id="resume-container"
+        class="hidden w-full max-w-[210mm] bg-white shadow-2xl min-h-[297mm] relative animate-fade-in-up">
+        <!-- Content injected here via JS -->
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = window.APP_CONFIG?.SUPABASE?.URL;
+        const supabaseKey = window.APP_CONFIG?.SUPABASE?.ANON_KEY;
+        let supabase = null;
+
+        if (supabaseUrl && supabaseKey) {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+
+            if (!id || !supabase) {
+                showError();
+                return;
+            }
+
+            try {
+                // Fetch Data
+                const { data, error } = await supabase
+                    .from('resumes')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error || !data) throw error || new Error('Not found');
+
+                // Check Expiration (7 Days)
+                const createdDate = new Date(data.updated_at); // Using updated_at as proxy for "link creation" for simplicity
+                const now = new Date();
+                const diffTime = Math.abs(now - createdDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 7) {
+                    showExpired();
+                    return;
+                }
+
+                // Increment View Count (Analytics)
+                // We store views in the JSON content to avoid schema changes
+                const content = data.content || {};
+                const currentViews = (content.views || 0) + 1;
+
+                // Fire and forget update (don't await to block render)
+                supabase.from('resumes').update({
+                    content: { ...content, views: currentViews }
+                }).eq('id', id).then(() => console.log('View counted'));
+
+                // Render
+                renderResume(content);
+
+            } catch (err) {
+                console.error(err);
+                showError();
+            }
+        }
+
+        function renderResume(state) {
+            document.getElementById('loading').classList.add('hidden');
+            const container = document.getElementById('resume-container');
+            container.classList.remove('hidden');
+
+            // Reuse the render logic from app.js (In production, this should be a shared module)
+            // For now, we'll manually inject the HTML structure based on state.template
+            // Assuming 'modern' or 'functional' for simplicity in demo
+
+            // Simplified rendering for demo purposes:
+            // You would ideally import the `updatePreview` function from app.js here.
+            // Since app.js is intertwined with UI logic, we'll do a basic render or fetch the HTML if stored.
+
+            // If the stored content JSON has the raw HTML string (recommended for sharing), use that.
+            // If it has only state (data), we need to reconstruct HTML.
+            // The `saveResume` in app.js likely saves the *state*.
+
+            // Reconstruct HTML (Basic Version)
+            // This mirrors the logic in app.js for 'modern' template roughly
+            const s = state;
+            container.innerHTML = `
+                <div class="h-full p-8 font-sans text-gray-800">
+                    <header class="border-b border-gray-200 pb-6 mb-6">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">${s.personal?.fullName || 'Untitled'}</h1>
+                        <p class="text-lg text-primary font-medium mb-4">${s.personal?.headline || ''}</p>
+                        <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                            <span>${s.personal?.email || ''}</span>
+                            <span>${s.personal?.phone || ''}</span>
+                            <span>${s.personal?.location || ''}</span>
+                        </div>
+                    </header>
+                    
+                    <main class="space-y-8">
+                         ${s.experience?.length ? `
+                        <section>
+                            <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 pb-2">Experience</h2>
+                            <div class="space-y-6">
+                                ${s.experience.map(e => `
+                                    <div class="grid grid-cols-12 gap-4">
+                                        <div class="col-span-3 text-xs text-gray-400 font-medium pt-1">${e.startDate} - ${e.endDate}</div>
+                                        <div class="col-span-9">
+                                            <h3 class="font-bold text-gray-900">${e.role}</h3>
+                                            <div class="text-sm text-primary mb-2">${e.company}</div>
+                                            <p class="text-sm text-gray-600 leading-relaxed">${e.description}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </section>` : ''}
+
+                         <div class="grid grid-cols-2 gap-8">
+                            ${s.education?.length ? `
+                            <section>
+                                <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 pb-2">Education</h2>
+                                <div class="space-y-4">
+                                    ${s.education.map(e => `
+                                        <div>
+                                            <div class="font-bold text-gray-900 text-sm">${e.school}</div>
+                                            <div class="text-xs text-gray-500 mb-1">${e.startDate} - ${e.endDate}</div>
+                                            <div class="text-xs font-semibold text-primary">${e.degree}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </section>` : ''}
+                            
+                            ${s.skills ? `
+                            <section>
+                                <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 pb-2">Skills</h2>
+                                <div class="flex flex-wrap gap-2">
+                                     ${s.skills.split(',').map(skill => `
+                                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded border border-gray-200">${skill.trim()}</span>
+                                    `).join('')}
+                                </div>
+                            </section>` : ''}
+                        </div>
+                    </main>
+                    
+                     <footer class="mt-12 pt-6 border-t border-gray-100 text-center text-[10px] text-gray-400">
+                        Generated by AI CV Builder
+                    </footer>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function showExpired() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('expired').classList.remove('hidden');
+        }
+
+        function handlePurchase() {
+            alert('Redirecting to payment gateway... (Demo Mode)');
+        }
+
+        // Run
+        init();
+    </script>
+</body>
+
+</html>

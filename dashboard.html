@@ -1,0 +1,1239 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CV Optimizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .sidebar-link:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+
+        .sidebar-link.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full hidden md:flex flex-shrink-0">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100">
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">CV Optimizer</h1>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            <div onclick="switchView('dashboard')" id="nav-dashboard"
+                class="sidebar-link active flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-700">
+                <i data-lucide="home" class="w-5 h-5 mr-3"></i>
+                Dashboard
+            </div>
+            <a href="index.html"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="file-text" class="w-5 h-5 mr-3"></i>
+                CV Builder
+            </a>
+            <div onclick="switchView('letters')" id="nav-letters"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="file" class="w-5 h-5 mr-3"></i>
+                My Letters
+            </div>
+            <div onclick="switchView('optimize')" id="nav-optimize"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="target" class="w-5 h-5 mr-3"></i>
+                Optimize
+            </div>
+            <div onclick="switchView('jobs')" id="nav-jobs"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i>
+                Find Jobs
+            </div>
+            <div onclick="switchView('ai-chat')" id="nav-ai-chat"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="message-square" class="w-5 h-5 mr-3"></i>
+                AI Career Coach
+            </div>
+            <div onclick="switchView('upgrade')" id="nav-upgrade"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="credit-card" class="w-5 h-5 mr-3"></i>
+                Upgrade Plan
+            </div>
+            <div onclick="switchView('settings')" id="nav-settings"
+                class="sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
+                Settings
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <button onclick="handleSignOut()"
+                class="w-full sidebar-link flex items-center px-3 py-2.5 rounded-md text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors">
+                <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/50 relative">
+        <!-- Global Header -->
+        <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-30">
+            <div class="flex items-center gap-4">
+                <!-- Language Selector -->
+                <div class="relative group">
+                    <select id="language-select" onchange="changeLanguage(this.value)"
+                        class="appearance-none bg-white border border-gray-200 text-gray-700 text-xs font-medium py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-gray-300 transition-colors">
+                        <option value="en">🇺🇸 English</option>
+                        <option value="tr">🇹🇷 Türkçe</option>
+                        <option value="ru">🇷🇺 Русский</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="pt">🇵🇹 Português</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </div>
+                </div>
+
+                <!-- Bell Icon -->
+                <div class="relative">
+                    <button onclick="toggleNotifications()"
+                        class="bg-white p-2 rounded-md border border-gray-200 text-gray-500 hover:text-black hover:border-gray-300 shadow-sm transition-colors relative group">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        <span
+                            class="absolute top-1.5 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="notification-dropdown"
+                        class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 hidden z-50 animate-fade-in-up origin-top-right">
+                        <div
+                            class="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-xl">
+                            <h3 class="font-bold text-sm text-gray-900">Notifications</h3>
+                            <span class="text-xs text-blue-600 cursor-pointer hover:underline">Mark all read</span>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                            <div
+                                class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer flex gap-3 transition-colors group">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <p
+                                        class="text-sm text-gray-800 font-medium group-hover:text-blue-600 transition-colors">
+                                        New Feature: AI Career Coach</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Get instant feedback on your CV.</p>
+                                    <span class="text-[10px] text-gray-400 mt-1 block">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div
+                                class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer flex gap-3 transition-colors group">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <p
+                                        class="text-sm text-gray-800 font-medium group-hover:text-green-600 transition-colors">
+                                        Welcome to CV Optimizer!</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Start building your professional resume
+                                        today.</p>
+                                    <span class="text-[10px] text-gray-400 mt-1 block">Yesterday</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar relative">
+
+            <!-- View: Dashboard -->
+            <div id="view-dashboard" class="view-section">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+                        <p class="text-gray-500 mt-1">Manage your CVs and cover letters.</p>
+                    </div>
+                    <a href="index.html"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm shadow-sm flex items-center transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                        CV Builder
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid-cards mb-10">
+                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100 flex items-center">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-4">
+                            <i data-lucide="file" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900" id="stat-total">0</div>
+                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Documents
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100 flex items-center">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-green-50 text-green-600 flex items-center justify-center mr-4">
+                            <i data-lucide="file-text" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900" id="stat-cvs">0</div>
+                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">CVs Created</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100 flex items-center">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mr-4">
+                            <i data-lucide="mail" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">0</div>
+                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cover Letters</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent CVs -->
+                <div class="bg-white rounded-xl card-shadow border border-gray-100 overflow-hidden min-h-[400px]">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Recent CVs</h3>
+                        <span class="text-xs text-gray-400">Sorted by last updated</span>
+                    </div>
+                    <div id="cv-list-container"
+                        class="p-12 flex flex-col items-center justify-center text-center h-full">
+                        <div
+                            class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                            <i data-lucide="file-text" class="w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-gray-900 font-medium mb-1">No CVs yet</h4>
+                        <p class="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Create your first CV to get started
+                            building
+                            your professional profile.</p>
+                        <a href="index.html"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-sm shadow-sm flex items-center transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            CV Builder
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: My Letters -->
+            <div id="view-letters" class="view-section hidden">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">My Motivation Letters</h1>
+                        <p class="text-gray-500 mt-1">History of all your AI-generated applications</p>
+                    </div>
+                    <div
+                        class="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-600 shadow-sm">
+                        0 Letters Generated
+                    </div>
+                </div>
+
+                <div
+                    class="bg-white rounded-xl border border-dashed border-gray-300 p-16 flex flex-col items-center justify-center text-center min-h-[400px] mt-6">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                        <i data-lucide="file-text" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">No letters yet</h3>
+                    <p class="text-gray-500 max-w-sm mx-auto mb-8">Start by searching for jobs and generating your first
+                        letter.</p>
+                    <button onclick="switchView('jobs')"
+                        class="bg-black text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors shadow-lg shadow-black/10">
+                        Go to Jobs
+                    </button>
+                </div>
+            </div>
+
+            <!-- View: Optimize -->
+            <div id="view-optimize" class="view-section hidden">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i data-lucide="target" class="w-8 h-8"></i> CV Optimizer
+                    </h1>
+                    <p class="text-gray-500 mt-2">Paste a job description to see how well your CV matches and get
+                        improvement suggestions.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                    <!-- Left Col: Form -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h2 class="font-bold text-gray-900 text-lg">Job Details</h2>
+                        <p class="text-sm text-gray-500 mb-6">Tell us about the role you're targeting.</p>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                                <input type="text" placeholder="e.g. Frontend Developer"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/5 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                                <input type="text" placeholder="e.g. Google"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/5 transition-all">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Job Description *</label>
+                            <textarea rows="10" placeholder="Paste the full job description here..."
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/5 resize-none transition-all font-mono"></textarea>
+                        </div>
+
+                        <button onclick="startOptimization()"
+                            class="w-full bg-gray-600 text-white font-medium py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> Analyze My CV
+                        </button>
+                    </div>
+
+                    <!-- Right Col: Empty State / Results -->
+                    <div id="optimize-results"
+                        class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center min-h-[500px]">
+                        <div class="text-gray-200 mb-4">
+                            <i data-lucide="target" class="w-20 h-20 opacity-50"></i>
+                        </div>
+                        <p class="text-gray-400 font-medium">Enter a job description to see your match score</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Find Jobs -->
+            <div id="view-jobs" class="view-section hidden">
+                <div class="flex flex-col gap-6 h-full">
+                    <!-- Header & Search -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                                <i data-lucide="briefcase" class="w-8 h-8"></i> Job Finder
+                            </h1>
+                            <p class="text-gray-500 mt-1">Power Search (100 Results Limit)</p>
+                        </div>
+
+                        <div class="flex-1 max-w-3xl flex gap-2">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="job-search-input" onkeypress="handleSearchInput(event)"
+                                    placeholder="Search jobs (e.g. 'Frontend Developer')"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                            </div>
+                            <div class="relative w-48 hidden md:block">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="map-pin" class="w-4 h-4 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="job-location-input" onkeypress="handleSearchInput(event)"
+                                    value="Remote"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                            </div>
+                            <button onclick="searchJobs()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-sm shadow-blue-600/20">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
+                        <!-- Left Sidebar -->
+                        <div class="lg:col-span-3 space-y-8">
+                            <div>
+                                <h3 class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4">Start Your
+                                    Search
+                                </h3>
+
+                                <h4
+                                    class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i data-lucide="clipboard-list" class="w-3 h-3"></i> Previous Searches
+                                </h4>
+
+                                <div id="previous-searches-list" class="space-y-4">
+                                    <!-- Previous searches will appear here -->
+                                    <p class="text-xs text-gray-400 italic">No recent searches</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Results Area (Empty State) -->
+                        <div
+                            class="lg:col-span-9 bg-slate-50/50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center text-center p-12">
+                            <div
+                                class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
+                                <i data-lucide="search" class="w-10 h-10 text-gray-300"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Ready to find your dream job?</h2>
+                            <p class="text-gray-500 max-w-md">Enter a job title and location above to search through the
+                                best opportunities on LinkedIn.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- View: Upgrade -->
+            <div id="view-upgrade" class="view-section hidden">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Upgrade Plan</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Free -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 flex flex-col h-full">
+                        <h3 class="text-lg font-bold">Free</h3>
+                        <p class="text-3xl font-bold mt-2">$0<span class="text-sm font-normal text-gray-500">/mo</span>
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2 mb-4">Perfect for testing the platform.</p>
+
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1">
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> 2 CVs (Resets every 14 days)</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> 2 Cover Letters (Resets every 14
+                                days)</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> 2 Daily Job Searches</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> PDF Export (Watermarked)</li>
+                            <li class="flex items-center text-gray-400"><i data-lucide="x"
+                                    class="w-4 h-4 mr-2 text-gray-300 shrink-0"></i> Unlimited History (Items Lock)</li>
+                            <li class="flex items-center text-gray-400"><i data-lucide="x"
+                                    class="w-4 h-4 mr-2 text-gray-300 shrink-0"></i> No Watermark</li>
+                            <li class="flex items-center text-gray-400"><i data-lucide="x"
+                                    class="w-4 h-4 mr-2 text-gray-300 shrink-0"></i> Advanced AI Optimization</li>
+                            <li class="flex items-center text-gray-400"><i data-lucide="x"
+                                    class="w-4 h-4 mr-2 text-gray-300 shrink-0"></i> LinkedIn Analysis</li>
+                        </ul>
+                        <button
+                            class="w-full mt-6 py-2 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors">Current
+                            Plan</button>
+                    </div>
+
+                    <!-- Pro Monthly -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col h-full">
+                        <h3 class="text-lg font-bold">Pro Monthly</h3>
+                        <p class="text-3xl font-bold mt-2">$12<span class="text-sm font-normal text-gray-500">/mo</span>
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2 mb-4">Upgrade to unlock all features.</p>
+
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1">
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> Unlimited CVs & Cover Letters</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> Unlimited Job Searches</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> No Watermark</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> Access to All History (No Locking)
+                            </li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> Advanced AI Optimization</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> LinkedIn Analysis & Integration
+                            </li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-500 shrink-0"></i> PDF & Word Export</li>
+                        </ul>
+                        <button onclick="handleUpgrade('monthly')"
+                            class="w-full mt-6 py-2 border border-blue-600 text-blue-600 bg-blue-50 rounded-lg font-medium hover:bg-blue-100 transition-colors">Upgrade
+                            Monthly</button>
+                    </div>
+
+                    <!-- Pro Annual -->
+                    <div
+                        class="bg-gray-900 text-white p-6 rounded-xl border border-gray-900 shadow-xl transform md:scale-105 relative flex flex-col h-full z-10">
+                        <div
+                            class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl">
+                            BEST VALUE</div>
+                        <h3 class="text-lg font-bold">Pro Annual</h3>
+                        <p class="text-3xl font-bold mt-2">$99<span class="text-sm font-normal text-gray-400">/yr</span>
+                        </p>
+                        <p class="text-xs text-green-400 font-medium mt-1">Save 30%</p>
+                        <p class="text-sm text-gray-400 mt-2 mb-4">Upgrade to unlock all features.</p>
+
+                        <ul class="space-y-3 text-sm text-gray-300 flex-1">
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> Unlimited CVs & Cover Letters</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> Unlimited Job Searches</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> No Watermark</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> Access to All History (No Locking)
+                            </li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> Advanced AI Optimization</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> LinkedIn Analysis & Integration
+                            </li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> PDF & Word Export</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> Priority Support</li>
+                            <li class="flex items-center"><i data-lucide="check"
+                                    class="w-4 h-4 mr-2 text-green-400 shrink-0"></i> 12 Months Access</li>
+                        </ul>
+                        <button onclick="handleUpgrade('annual')"
+                            class="w-full mt-6 py-2 bg-blue-600 rounded-lg font-medium hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-colors">Upgrade
+                            Yearly</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Settings -->
+            <div id="view-settings" class="view-section hidden">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Settings</h1>
+                <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100 max-w-lg">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        value="Ismayil Mikayilov">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email"
+                                        class="w-full border border-gray-200 rounded-lg px-4 py-2 bg-gray-50 text-gray-500"
+                                        value="user@example.com" disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100">
+                            <button
+                                class="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">Save
+                                Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: AI Chat (New) -->
+            <div id="view-ai-chat" class="view-section hidden h-full flex flex-col">
+                <div class="flex justify-between items-center mb-6 shrink-0">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                            <i data-lucide="bot" class="w-8 h-8 text-blue-600"></i> AI Career Coach
+                        </h1>
+                        <p class="text-gray-500 mt-1">Chat with our AI to improve your career prospects.</p>
+                    </div>
+                </div>
+
+                <!-- Chat Container -->
+                <div
+                    class="flex-1 bg-white rounded-xl card-shadow border border-gray-100 flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">
+                    <!-- Messages Area -->
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50">
+                        <!-- Welcome Message -->
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="bot" class="w-5 h-5"></i>
+                            </div>
+                            <div
+                                class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 max-w-[80%]">
+                                Hello! I'm your AI Career Coach. How can I help you with your CV or job search today? 🤖
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="p-4 bg-white border-t border-gray-100 shrink-0">
+                        <form onsubmit="handleAiChat(event)" class="flex gap-4">
+                            <input type="text" id="ai-chat-input" placeholder="Ask me anything about your CV..."
+                                class="flex-1 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                            <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-sm shadow-blue-600/20 flex items-center gap-2">
+                                Send <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Notification & Language Logic
+        function toggleNotifications() {
+            const dd = document.getElementById('notification-dropdown');
+            if (dd) dd.classList.toggle('hidden');
+        }
+
+        function changeLanguage(lang) {
+            localStorage.setItem('preferredLanguage', lang);
+            // In a real app, this would trigger a re-render or page reload
+            // For now, we persist the setting.
+        }
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function (e) {
+            const notifDd = document.getElementById('notification-dropdown');
+            const notifBtn = e.target.closest('button[onclick="toggleNotifications()"]');
+
+            if (notifDd && !notifDd.classList.contains('hidden') && !notifDd.contains(e.target) && !notifBtn) {
+                notifDd.classList.add('hidden');
+            }
+        });
+
+        // Payment Processing Simulation
+        // Payment Processing Simulation
+        function handleUpgrade(plan) {
+            // Redirect to checkout page
+            window.location.href = `checkout.html?plan=${plan}`;
+        }
+
+        function handleSignOut() {
+            localStorage.removeItem('isAuthenticated');
+            window.location.href = 'login.html';
+        }
+
+        function switchView(viewId) {
+            // Update Sidebar
+            document.querySelectorAll('.sidebar-link').forEach(el => {
+                // If it's a tab link (has onclick)
+                if (el.getAttribute('onclick')?.includes('switchView')) {
+                    el.classList.remove('active', 'text-blue-600', 'bg-blue-50');
+                    el.classList.add('text-gray-600', 'hover:bg-gray-50');
+                }
+            });
+
+            const btn = document.getElementById(`nav-${viewId}`);
+            if (btn) {
+                btn.classList.add('active', 'text-blue-600', 'bg-blue-50');
+                btn.classList.remove('text-gray-600', 'hover:bg-gray-50');
+            }
+
+            // Update Main Content
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+        }
+
+        // --- Mock Functionality for Interactive Feel ---
+
+        function startOptimization() {
+            const btn = document.querySelector('#view-optimize button');
+            if (!btn) return;
+
+            const originalContent = btn.innerHTML;
+            const resultsPanel = document.getElementById('optimize-results');
+
+            btn.innerHTML = '<span class="animate-spin mr-2">⟳</span> Analyzing...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+
+                // Show Mock Results
+                if (resultsPanel) {
+                    resultsPanel.innerHTML = `
+                        <div class="w-full h-full flex flex-col items-center animate-fade-in-up">
+                            <div class="relative w-40 h-40 mb-6">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="80" cy="80" r="70" stroke="#f3f4f6" stroke-width="12" fill="none" />
+                                    <circle cx="80" cy="80" r="70" stroke="#22c55e" stroke-width="12" fill="none" stroke-dasharray="440" stroke-dashoffset="396" stroke-linecap="round" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                    <span class="text-5xl font-bold text-gray-900">92%</span>
+                                    <span class="text-sm text-gray-500 font-medium uppercase mt-1">Match</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Excellent Match!</h3>
+                            <p class="text-gray-500 mb-8 max-w-md">Your CV is well-optimized for this role. You have a strong keyword overlap.</p>
+
+                            <div class="w-full bg-gray-50 p-6 rounded-xl border border-gray-100 text-left">
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Keywords Found</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-md font-medium border border-green-200">Frontend Integration</span>
+                                    <span class="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-md font-medium border border-green-200">User Experience</span>
+                                    <span class="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-md font-medium border border-green-200">Prototyping</span>
+                                    <span class="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-md font-medium border border-green-200">Responsive Design</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    // Animate the circle
+                    setTimeout(() => {
+                        const circle = resultsPanel.querySelector('circle:last-child');
+                        if (circle) circle.style.strokeDashoffset = '44'; // 90% full
+                        if (window.lucide) lucide.createIcons();
+                    }, 100);
+                }
+            }, 2000);
+        }
+
+        // Job Search History Logic
+        function handleSearchInput(e) {
+            if (e.key === 'Enter') {
+                searchJobs();
+            }
+        }
+
+        function saveSearchHistory(query) {
+            if (!query) return;
+            let history = JSON.parse(localStorage.getItem('jobSearchHistory') || '[]');
+            // Remove if exists to push to top
+            history = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+            history.unshift(query);
+            // Limit to 5
+            if (history.length > 5) history.pop();
+            localStorage.setItem('jobSearchHistory', JSON.stringify(history));
+            renderSearchHistory();
+        }
+
+        function deleteSearchHistory(index) {
+            let history = JSON.parse(localStorage.getItem('jobSearchHistory') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('jobSearchHistory', JSON.stringify(history));
+            renderSearchHistory();
+        }
+
+        function renderSearchHistory() {
+            const list = document.getElementById('previous-searches-list');
+            if (!list) return;
+
+            const history = JSON.parse(localStorage.getItem('jobSearchHistory') || '[]');
+            if (history.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-400 italic">No recent searches</p>';
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => `
+                <div class="flex items-center justify-between group p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                    <span onclick="searchJobsFromHistory('${item}')" class="text-sm text-gray-600 hover:text-blue-600 truncate flex-1">${item}</span>
+                    <button onclick="deleteSearchHistory(${index})" class="text-gray-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function searchJobsFromHistory(query) {
+            const input = document.getElementById('job-search-input');
+            if (input) {
+                input.value = query;
+                searchJobs();
+            }
+        }
+
+        // Initialize history on load
+        document.addEventListener('DOMContentLoaded', renderSearchHistory);
+
+        // Global store for current search results
+        window.currentJobData = [];
+
+        async function searchJobs() {
+            const btn = document.querySelector('#view-jobs button');
+            const input = document.getElementById('job-search-input');
+            const locationInput = document.getElementById('job-location-input');
+
+            const query = input && input.value ? input.value : 'Jobs';
+
+            // Save to history if it's a real user search
+            if (input && input.value) {
+                saveSearchHistory(input.value);
+            }
+
+            if (!btn) return;
+
+            const originalText = btn.innerText;
+            btn.innerText = 'Searching...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-wait');
+
+            // Reset UI for results area
+            const resultsTarget = document.querySelector('#view-jobs .lg\\:col-span-9');
+
+            try {
+                // REAL API FETCH
+                const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}&limit=50`);
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                let jobs = data.jobs ? data.jobs.slice(0, 50) : [];
+
+                if (jobs.length === 0) throw new Error('No jobs found');
+
+                // Build HTML for Real Jobs
+                let jobsHtml = `
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">${jobs.length} REAL JOBS FOUND</h3>
+                       <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100 flex items-center gap-1">
+                             <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Data
+                        </span>
+                    </div>
+                    <div class="space-y-4">
+                `;
+
+                window.currentJobData = [];
+
+                jobs.forEach((job, i) => {
+                    const company = job.company_name;
+                    const location = job.candidate_required_location || 'Remote';
+                    const displayTitle = job.title;
+                    const salary = job.salary || 'Competitive';
+                    const type = job.job_type ? job.job_type.replace('_', ' ') : 'Full-time';
+                    const description = job.description || '';
+                    const cleanDesc = description.replace(/<[^>]*>/g, '').substring(0, 150) + '...';
+                    const jobLink = job.url; // Real Link
+
+                    // Logo Logic
+                    const logoHtml = job.company_logo_url
+                        ? `<img src="${job.company_logo_url}" class="w-12 h-12 rounded-lg object-contain bg-white border border-gray-100">`
+                        : `<div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-sm">${company.substring(0, 1)}</div>`;
+
+                    const delay = i < 10 ? `style="animation-delay: ${i * 50}ms"` : '';
+
+                    jobsHtml += `
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all relative group animate-fade-in-up" ${delay}>
+                        <a href="${jobLink}" target="_blank" class="absolute top-6 right-6 text-gray-300 hover:text-blue-600 transition-colors">
+                            <i data-lucide="bookmark" class="w-5 h-5"></i>
+                        </a>
+                        <div class="flex gap-4">
+                            <div class="shrink-0">${logoHtml}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-1 pr-8">
+                                    <h4 class="font-bold text-gray-900 text-lg leading-tight hover:text-blue-600 transition-colors">
+                                        <a href="${jobLink}" target="_blank">${displayTitle}</a>
+                                    </h4>
+                                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded whitespace-nowrap">Recently</span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">
+                                    <span class="flex items-center gap-1"><i data-lucide="building-2" class="w-3 h-3"></i> ${company}</span>
+                                    <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${location}</span>
+                                    <span class="flex items-center gap-1"><i data-lucide="briefcase" class="w-3 h-3"></i> ${type}</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-6 line-clamp-2">${cleanDesc}</p>
+                                <div class="flex items-center gap-4">
+                                    <button onclick="switchView('optimize')" class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="sparkles" class="w-3 h-3 text-purple-500"></i> Optimize CV
+                                    </button>
+                                    <a href="${jobLink}" target="_blank" class="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                                        View Details <i data-lucide="external-link" class="w-3 h-3"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                jobsHtml += '</div>';
+
+                if (resultsTarget) {
+                    resultsTarget.innerHTML = jobsHtml;
+                    resultsTarget.classList.remove('flex', 'flex-col', 'items-center', 'justify-center', 'text-center', 'p-12');
+                    resultsTarget.classList.add('block');
+                }
+
+            } catch (err) {
+                console.log('API Failed, using mock', err);
+
+                // FALLBACK MOCK DATA (Original Logic)
+                const companies = ['Google', 'Microsoft', 'Spotify', 'Netflix', 'Microsoft', 'Uber', 'Stripe', 'Twitch', 'Amazon', 'Apple'];
+                const locations = ['Remote', 'New York, NY', 'San Francisco, CA', 'London', 'Berlin', 'Austin, TX'];
+                const titles = ['Senior', 'Lead', 'Junior', 'Staff', 'Principal', 'Software Engineer', 'Product Manager'];
+                const resultCount = 10;
+
+                let jobsHtml = `
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">${resultCount} DEMO OPPORTUNITIES</h3>
+                         <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-100">Demo Mode</span>
+                    </div>
+                    <div class="space-y-4">
+                `;
+
+                window.currentJobData = [];
+
+                for (let i = 0; i < resultCount; i++) {
+                    const company = companies[Math.floor(Math.random() * companies.length)];
+                    const location = locations[Math.floor(Math.random() * locations.length)];
+                    const prefix = titles[Math.floor(Math.random() * titles.length)];
+                    const formattedQuery = query.charAt(0).toUpperCase() + query.slice(1);
+                    const displayTitle = Math.random() > 0.5 ? `${prefix} ${formattedQuery}` : `${prefix} Developer`;
+                    const salary = `$${Math.floor(Math.random() * 80 + 80)}k - $${Math.floor(Math.random() * 100 + 160)}k`;
+                    const type = Math.random() > 0.3 ? 'Full-time' : 'Contract';
+                    const initials = company.substring(0, 1);
+                    const colorClass = ['bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600'][Math.floor(Math.random() * 3)];
+                    const description = `This is a sample job description for ${displayTitle} at ${company}.`;
+
+                    const jobLink = `https://www.google.com/search?q=${encodeURIComponent(`${displayTitle} at ${company} ${location} jobs`)}&ibp=htl;jobs`;
+
+                    const delay = i < 10 ? `style="animation-delay: ${i * 50}ms"` : '';
+
+                    jobsHtml += `
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all relative group animate-fade-in-up" ${delay}>
+                        <div class="flex gap-4">
+                            <div class="w-16 h-16 ${colorClass} rounded-2xl flex items-center justify-center font-bold text-2xl shadow-sm shrink-0">${initials}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h4 class="font-bold text-gray-900 text-lg">${displayTitle}</h4>
+                                </div>
+                                <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                    <span>${company}</span> • <span>${location}</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-6 line-clamp-2">${description}</p>
+                                <div class="flex items-center gap-4">
+                                     <button onclick="switchView('optimize')" class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="sparkles" class="w-3 h-3 text-purple-500"></i> Optimize CV
+                                     </button>
+                                     <a href="${jobLink}" target="_blank" class="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                                        View Details <i data-lucide="external-link" class="w-3 h-3"></i>
+                                     </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                jobsHtml += '</div>';
+
+                if (resultsTarget) {
+                    resultsTarget.innerHTML = jobsHtml;
+                    resultsTarget.classList.remove('flex', 'flex-col', 'items-center', 'justify-center', 'text-center', 'p-12');
+                    resultsTarget.classList.add('block');
+                }
+            }
+
+            // Restore Button
+            btn.innerText = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-wait');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function viewJobDetails(index) {
+            const job = window.currentJobData[index];
+            if (!job) return;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('job-modal');
+            if (existingModal) existingModal.remove();
+
+            const modalHtml = `
+            <div id="job-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onclick="if(event.target === this) this.remove()">
+                <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in m-4">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 ${job.colorClass} rounded-xl flex items-center justify-center font-bold text-2xl shadow-sm">${job.initials}</div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">${job.title}</h2>
+                                <p class="text-gray-500 font-medium">${job.company} • ${job.location}</p>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('job-modal').remove()" class="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-8 overflow-y-auto flex-1">
+                        <div class="flex gap-3 mb-8">
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> ${job.type}</span>
+                            <span class="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium flex items-center gap-2"><i data-lucide="banknote" class="w-4 h-4"></i> ${job.salary}</span>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Job Description</h3>
+                        <div class="prose text-gray-600 mb-8 whitespace-pre-line leading-relaxed">
+                            ${job.description}
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+                        <button onclick="document.getElementById('job-modal').remove()" class="px-6 py-2.5 font-medium text-gray-600 hover:text-gray-900 transition-colors">Close</button>
+                        <button onclick="handleApplyJob(this, event)" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2">
+                            Apply Now <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-3';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-black text-white' : 'bg-red-600 text-white';
+            toast.className = `${bgColor} px-6 py-4 rounded-lg shadow-xl transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-3 min-w-[300px]`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5 ${type === 'success' ? 'text-green-400' : 'text-white'}"></i>
+                <p class="font-medium text-sm">${message}</p>
+            `;
+
+            container.appendChild(toast);
+            if (window.lucide) lucide.createIcons();
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function handleApplyJob(btn, e) {
+            if (e) e.stopPropagation();
+
+            // Prevent double clicks
+            if (btn.disabled || btn.innerText.includes('Applied')) return;
+
+            const originalText = btn.innerHTML;
+            const card = btn.closest('.group');
+            // Try to find company name: looks for the <p> tag with text-gray-500
+            const companyText = card ? card.querySelector('p.text-gray-500')?.innerText.split('•')[0].trim() : 'Company';
+
+            // Loading State
+            btn.innerHTML = '<span class="animate-spin mr-2">⟳</span> Sending...';
+            btn.classList.add('opacity-75', 'cursor-wait');
+
+            setTimeout(() => {
+                // Success State
+                btn.innerHTML = '<span class="flex items-center"><i data-lucide="check" class="w-4 h-4 mr-2"></i> Applied</span>';
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'hover:bg-blue-50', 'opacity-75', 'cursor-wait');
+                btn.classList.add('bg-green-100', 'text-green-700', 'border-green-200', 'border');
+                btn.disabled = true;
+
+                if (window.lucide) {
+                    try {
+                        lucide.createIcons();
+                    } catch (err) { console.error(err); }
+                }
+
+                showToast(`Application sent to ${companyText} successfully!`, 'success');
+            }, 800);
+        }
+
+        // --- AI Chat Logic ---
+        function handleAiChat(e) {
+            e.preventDefault();
+            const input = document.getElementById('ai-chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 1. Add User Message
+            appendMessage('user', message);
+            input.value = '';
+
+            // 2. Add Loading Indicator
+            const loadingId = 'ai-loading-' + Date.now();
+            appendLoading(loadingId);
+
+            // 3. Mock AI Response
+            setTimeout(() => {
+                removeLoading(loadingId);
+                const response = getMockAiResponse(message);
+                appendMessage('ai', response);
+            }, 1500);
+        }
+
+        function appendMessage(role, text) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-3 ${role === 'user' ? 'justify-end' : ''}`;
+
+            if (role === 'ai') {
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 max-w-[80%] animate-fade-in-up">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-sm max-w-[80%] animate-fade-in-up">
+                        ${text}
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </div>
+                `;
+            }
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight; // Auto scroll
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function appendLoading(id) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `flex items-start gap-3`;
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="bot" class="w-5 h-5"></i>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded-2xl rounded-tl-none shadow-sm flex gap-1">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function getMockAiResponse(msg) {
+            const lower = msg.toLowerCase();
+            if (lower.includes('cv') || lower.includes('resume')) return "To improve your CV, make sure to use action verbs (e.g., 'Led', 'Developed') and quantify your achievements with numbers (e.g., 'increased sales by 20%'). Would you like me to analyze a specific section?";
+            if (lower.includes('job') || lower.includes('search')) return "I can help you find jobs! Have you checked our 'Find Jobs' section? It aggregates top listings from LinkedIn based on your profile.";
+            if (lower.includes('cover letter')) return "A great cover letter should be concise and tailored to the job description. Mention why you're a good fit and your enthusiasm for the company.";
+            if (lower.includes('hello') || lower.includes('hi')) return "Hello there! Ready to boost your career? Ask me anything.";
+            return "That's an interesting point. Could you tell me more about your specific career goals so I can give better advice?";
+        }
+
+        function generateLetter() {
+            const btn = document.querySelector('#view-letters button');
+            if (!btn) return;
+            btn.innerText = 'Generating...';
+
+            setTimeout(() => {
+                btn.innerText = 'Create Cover Letter';
+                alert('Cover Letter Generated! \n\n"Dear Hiring Manager, based on my extensive experience..."\n\n(This would be saved to your documents)');
+            }, 1000);
+        }
+
+        function saveSettings() {
+            const btn = document.querySelector('#view-settings button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Saving...';
+
+            const name = document.querySelector('#view-settings input[type="text"]').value;
+            localStorage.setItem('userDisplayName', name);
+
+            setTimeout(() => {
+                btn.innerText = 'Saved!';
+                btn.classList.remove('bg-black', 'hover:bg-gray-800');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.add('bg-black', 'hover:bg-gray-800');
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                }, 2000);
+            }, 800);
+        }
+
+        // Simple auth check
+        if (localStorage.getItem('isAuthenticated') !== 'true') {
+            // window.location.href = 'login.html'; // Commented out for dev ease if file missing
+        }
+
+        // Initialize user data
+        const savedName = localStorage.getItem('userDisplayName');
+        if (savedName) {
+            const nameInput = document.querySelector('#view-settings input[type="text"]');
+            if (nameInput) nameInput.value = savedName;
+        }
+
+        // Check for existing CV data to update stats
+        const savedCV = localStorage.getItem('resumeState');
+        if (savedCV) {
+            const elTotal = document.getElementById('stat-total');
+            const elCvs = document.getElementById('stat-cvs');
+            if (elTotal) elTotal.innerText = '1';
+            if (elCvs) elCvs.innerText = '1';
+
+            // If data exists, show it in the list (simple implementation)
+            const listContainer = document.getElementById('cv-list-container');
+            const data = JSON.parse(savedCV);
+            const name = data.personal?.fullName || 'Untitled CV';
+            const role = data.personal?.headline || 'No Role';
+
+            if (listContainer) {
+                listContainer.classList.remove('flex-col', 'items-center', 'justify-center', 'text-center');
+                listContainer.classList.add('p-0');
+                listContainer.innerHTML = `
+                    <div class="divide-y divide-gray-100">
+                        <div class="p-4 hover:bg-gray-50 flex items-center justify-between group transition-colors cursor-pointer" onclick="window.location.href='index.html'">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center mr-4 font-bold text-sm">CV</div>
+                                <div>
+                                    <h5 class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">${name}</h5>
+                                    <p class="text-xs text-gray-500">${role}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-xs text-gray-400">
+                                <span class="mr-4">Edited just now</span>
+                                <button class="p-2 hover:bg-white rounded-full hover:shadow-sm text-gray-400 hover:text-black transition-all">
+                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+
+</html>

@@ -38,18 +38,30 @@ body {
     width: 100vw;
 }
 
-@media (max-width: 1200px) {
-    /* Mobile styles can be added here */
+.nav-item-icon.active div {
+    background-color: #eff6ff;
+    /* blue-50 */
+    color: #2563eb;
+    /* blue-600 */
 }
 
-/* Sidebar */
-.sidebar {
-    width: 240px;
-    background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-light);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+.nav-item-icon.active {
+    opacity: 1;
+}
+
+transition: all 0.2s;
+cursor: pointer;
+}
+
+.nav-item:hover {
+    background-color: #f9fafb;
+    color: var(--text-main);
+}
+
+.nav-item.active {
+    background-color: #f3f4f6;
+    color: var(--primary);
+    border-left-color: var(--primary);
 }
 
 /* Editor Panel */
@@ -161,4 +173,50 @@ body {
 
 .section-card:hover {
     box-shadow: var(--shadow-sm);
+}
+
+/* Print Styles for PDF Export */
+@media print {
+    @page {
+        margin: 0;
+        size: A4;
+    }
+
+    body {
+        background: white;
+        height: auto;
+        overflow: visible;
+    }
+
+    .app-layout {
+        display: block;
+        height: auto;
+        width: 100%;
+    }
+
+    .sidebar,
+    .editor-panel,
+    .btn-primary,
+    .nav-tab,
+    header {
+        display: none !important;
+    }
+
+    .preview-panel {
+        background: white;
+        padding: 0;
+        margin: 0;
+        display: block;
+        overflow: visible;
+        height: auto;
+    }
+
+    .resume-sheet {
+        box-shadow: none;
+        margin: 0;
+        width: 100%;
+        min-height: auto;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
 }
