@@ -429,22 +429,31 @@
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-wait');
 
-            // Open Paddle Checkout
-            Paddle.Checkout.open({
-                items: [{ priceId: priceId, quantity: 1 }],
-                customer: { email: email },
-                settings: {
-                    successUrl: window.location.origin + '/dashboard.html?upgrade=success',
-                    displayMode: 'overlay',
-                    theme: 'light',
-                    locale: 'en'
-                },
-                closed: () => {
-                    btn.innerText = 'Subscribe';
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-75', 'cursor-wait');
-                }
-            });
+            // Open Paddle Checkout with Error Handling
+            try {
+                Paddle.Checkout.open({
+                    items: [{ priceId: priceId, quantity: 1 }],
+                    customer: { email: email },
+                    settings: {
+                        successUrl: window.location.origin + '/dashboard.html?upgrade=success',
+                        displayMode: 'overlay',
+                        theme: 'light',
+                        locale: 'en'
+                    },
+                    closed: () => {
+                        console.log('Paddle checkout closed');
+                        btn.innerText = 'Subscribe';
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-75', 'cursor-wait');
+                    }
+                });
+            } catch (err) {
+                console.error('Paddle Error:', err);
+                alert('Paddle initialization failed. Please check the console for details. Common cause: Domain approval.');
+                btn.innerText = 'Error - Try Again';
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-wait');
+            }
         }
 
         init();
