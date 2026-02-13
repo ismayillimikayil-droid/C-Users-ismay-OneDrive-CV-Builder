@@ -1119,7 +1119,9 @@ async function shareCvLink() {
         if (error) throw error;
 
         // 4. Show Modal
-        const link = `${window.location.origin}/share.html?id=${data.id}`;
+        // Calculate base URL to support subdirectories (like GitHub Pages)
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        const link = `${baseUrl}/share.html?id=${data.id}`;
         showShareModal(link);
 
     } catch (err) {
