@@ -424,7 +424,8 @@
             const btn = document.getElementById('pay-btn');
 
             let checkoutUrl = '';
-            if (currentPlan === 'monthly') {
+            // Use planKey from outer scope
+            if (planKey === 'monthly') {
                 checkoutUrl = 'https://cvmakerly.lemonsqueezy.com/buy/pri_01khbedtb367hwq2my92tqpv7w';
             } else {
                 checkoutUrl = 'https://cvmakerly.lemonsqueezy.com/buy/pri_01khbefy3c92k9x9tk7tm4ae16';
