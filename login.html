@@ -116,7 +116,7 @@
 
                 <!-- Social Login -->
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="alert('Social login demo')"
+                    <button onclick="handleSocialLogin('google', this)"
                         class="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-sm font-medium transition-colors">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                             <path
@@ -124,7 +124,7 @@
                         </svg>
                         Google
                     </button>
-                    <button onclick="alert('Social login demo')"
+                    <button onclick="handleSocialLogin('github', this)"
                         class="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-sm font-medium transition-colors">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path
@@ -161,18 +161,7 @@
 
             setTimeout(() => {
                 if (email && password) {
-                    localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userEmail', email);
-
-                    // Success State
-                    btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> Success!`;
-                    btn.classList.remove('from-blue-600', 'to-purple-600');
-                    btn.classList.add('bg-green-500', 'hover:bg-green-600');
-                    lucide.createIcons();
-
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 800);
+                    completeLogin(email, btn);
                 } else {
                     alert('Please enter email and password');
                     btn.innerHTML = originalContent;
@@ -180,6 +169,35 @@
                     lucide.createIcons();
                 }
             }, 1000); // Simulated delay
+        }
+
+        function handleSocialLogin(provider, btnElement) {
+            // Loading State for Social Button
+            const originalContent = btnElement.innerHTML;
+            btnElement.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>`;
+            btnElement.classList.add('opacity-80', 'cursor-wait');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                completeLogin('user@example.com', btnElement, true);
+            }, 1000);
+        }
+
+        function completeLogin(email, btn, isSocial = false) {
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userEmail', email);
+
+            // Success State
+            if (!isSocial) {
+                btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> Success!`;
+                btn.classList.remove('from-blue-600', 'to-purple-600');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+            }
+            lucide.createIcons();
+
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 800);
         }
     </script>
 </body>
