@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Builder | Rezi Clone</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        'primary-dark': '#4f46e5',
+                        secondary: '#10b981',
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-50 text-gray-900 antialiased h-screen overflow-hidden">
+
+    <div class="app-layout h-full">
+        <!-- 1. LEFT SIDEBAR (Navigation) -->
+        <div class="app-layout h-full">
+            <!-- 1. LEFT SIDEBAR (Navigation) -->
+            <aside class="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6 h-full z-10">
+                <!-- Back to Dashboard -->
+                <a href="dashboard.html" class="mb-8 text-gray-400 hover:text-gray-900 transition-colors"
+                    title="Back to Dashboard">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex-1 w-full flex flex-col items-center space-y-6">
+                    <!-- Template Tab -->
+                    <div onclick="switchTab('template')" id="nav-template"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-1 group-hover:bg-blue-100 transition-colors">
+                            <i data-lucide="layout-template" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] uppercase font-bold text-blue-600 tracking-wide">Template</span>
+                    </div>
+
+                    <!-- Personal -->
+                    <div onclick="switchTab('personal')" id="nav-personal"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center mb-1 text-gray-500 group-hover:text-blue-600 transition-colors">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-blue-600">Personal</span>
+                    </div>
+
+                    <!-- Experience -->
+                    <div onclick="switchTab('experience')" id="nav-experience"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center mb-1 text-gray-500 group-hover:text-blue-600 transition-colors">
+                            <i data-lucide="briefcase" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-blue-600">Experience</span>
+                    </div>
+
+                    <!-- Education -->
+                    <div onclick="switchTab('education')" id="nav-education"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center mb-1 text-gray-500 group-hover:text-blue-600 transition-colors">
+                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-blue-600">Education</span>
+                    </div>
+
+                    <!-- Skills -->
+                    <div onclick="switchTab('skills')" id="nav-skills"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center mb-1 text-gray-500 group-hover:text-blue-600 transition-colors">
+                            <i data-lucide="wrench" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-500 group-hover:text-blue-600">Skills</span>
+                    </div>
+                </nav>
+
+                <!-- Bottom Actions -->
+                <div class="mt-auto space-y-4 w-full flex flex-col items-center">
+                    <button onclick="saveToCloud(event)"
+                        class="nav-item-icon group relative cursor-pointer flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity"
+                        title="Save">
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center mb-1 text-gray-500 hover:text-green-600 transition-colors">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-500">Save</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- 2. CENTER PANEL (Editor) -->
+            <main class="editor-panel flex flex-col h-full bg-white relative">
+
+                <!-- GLOBAL TOP BAR (Rezi Style) -->
+                <header
+                    class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white z-20 shrink-0">
+                    <!-- Left side removed as requested -->
+                    <div></div>
+
+                    <div class="flex items-center gap-6">
+                        <!-- Separator -->
+                        <div class="h-6 w-px bg-gray-200"></div>
+
+                        <!-- EXPORT / DOWNLOAD -->
+                        <!-- Share Button -->
+                        <button onclick="shareCvLink()"
+                            class="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors border border-indigo-100">
+                            Share Link <i data-lucide="share-2" class="w-3 h-3"></i>
+                        </button>
+
+                        <button onclick="downloadPdf()"
+                            class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-colors shadow-lg shadow-gray-200"
+                            title="Save as PDF">
+                            Download PDF <i data-lucide="download" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Template Section (New) -->
+                <div id="section-template" class="section-content hidden h-full flex flex-col">
+                    <div
+                        class="px-8 py-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Choose Template</h2>
+                            <p class="text-sm text-gray-500">Select a design for your CV.</p>
+                        </div>
+                    </div>
+                    <div class="p-8 space-y-6 flex-1 overflow-y-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
+                            <!-- Modern Template -->
+                            <div onclick="selectTemplate('modern')" data-template-card="modern"
+                                class="border-2 border-blue-600 rounded-xl p-5 cursor-pointer hover:shadow-lg transition-all relative bg-blue-50/50 group h-full flex flex-col">
+                                <div
+                                    class="selected-badge absolute top-3 right-3 bg-blue-600 text-white text-[9px] uppercase font-bold px-2 py-0.5 rounded shadow-sm z-10">
+                                    Selected</div>
+                                <div
+                                    class="h-10 w-10 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 mb-4 shrink-0">
+                                    <i data-lucide="palette" class="w-5 h-5"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Modern</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed min-h-[40px]">Clean sidebar layout
+                                    with photo support.</p>
+                                <ul class="space-y-2 mt-auto">
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Photo support</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Sidebar design</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Colorful accents</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Executive Template -->
+                            <div onclick="selectTemplate('executive')" data-template-card="executive"
+                                class="border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all relative group h-full flex flex-col">
+                                <div
+                                    class="selected-badge absolute top-3 right-3 bg-blue-600 text-white text-[9px] uppercase font-bold px-2 py-0.5 rounded shadow-sm z-10 hidden">
+                                    Selected</div>
+                                <div
+                                    class="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 mb-4 shrink-0">
+                                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Executive</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed min-h-[40px]">Sophisticated layout
+                                    for corporate roles.</p>
+                                <ul class="space-y-2 mt-auto">
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Serif typography</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Elegant accents</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Traditional format</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Creative Template -->
+                            <div onclick="selectTemplate('creative')" data-template-card="creative"
+                                class="border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all relative group h-full flex flex-col">
+                                <div
+                                    class="selected-badge absolute top-3 right-3 bg-blue-600 text-white text-[9px] uppercase font-bold px-2 py-0.5 rounded shadow-sm z-10 hidden">
+                                    Selected</div>
+                                <div
+                                    class="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-500 mb-4 shrink-0">
+                                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Creative</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed min-h-[40px]">Bold design for
+                                    creative professionals.</p>
+                                <ul class="space-y-2 mt-auto">
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Unique layout</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Visual flair</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Standout style</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Minimalist Template -->
+                            <div onclick="selectTemplate('minimalist')" data-template-card="minimalist"
+                                class="border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all relative group h-full flex flex-col">
+                                <div
+                                    class="selected-badge absolute top-3 right-3 bg-blue-600 text-white text-[9px] uppercase font-bold px-2 py-0.5 rounded shadow-sm z-10 hidden">
+                                    Selected</div>
+                                <div
+                                    class="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 mb-4 shrink-0">
+                                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Minimalist</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed min-h-[40px]">Clean,
+                                    distraction-free design (ATS Friendly).</p>
+                                <ul class="space-y-2 mt-auto">
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Simple format</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>High readability</span>
+                                    </li>
+                                    <li class="flex items-start gap-2 text-[10px] text-gray-500">
+                                        <i data-lucide="check" class="w-3 h-3 text-blue-500 mt-0.5 shrink-0"></i>
+                                        <span>Machine friendly</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Section -->
+                <div id="section-personal" class="section-content h-full flex flex-col">
+                    <div
+                        class="px-8 py-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 bg-white/95 backdrop-blur z-10">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900" data-i18n="section.personal.title">Personal
+                                Details</h2>
+                            <p class="text-sm text-gray-500" data-i18n="section.personal.desc">Your basic contact
+                                information.</p>
+                        </div>
+                        <!-- Builder Title (Relative) -->
+                        <div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                            <span class="font-bold text-gray-900 text-sm">CV Builder</span>
+                            <span
+                                class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">FREE</span>
+                        </div>
+                    </div>
+                    <div class="p-8 space-y-6 flex-1 overflow-y-auto">
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- Photo Upload -->
+                            <div class="flex items-center gap-6">
+                                <div class="shrink-0">
+                                    <div id="photo-preview"
+                                        class="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300 text-gray-400 overflow-hidden relative">
+                                        <i data-lucide="camera" class="w-8 h-8"></i>
+                                        <!-- Image will be injected here via JS -->
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
+                                    <div class="flex items-center gap-3">
+                                        <label
+                                            class="cursor-pointer bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
+                                            Upload Photo
+                                            <input type="file" id="photo-upload" accept="image/*" class="hidden"
+                                                onchange="handlePhotoUpload(event)">
+                                        </label>
+                                        <button onclick="removePhoto()" id="remove-photo-btn"
+                                            class="text-red-500 text-sm hover:text-red-700 font-medium hidden">Remove</button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">Recommended: Square JPG, PNG. Max 2MB.</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="rezi-label" data-i18n="label.fullname">Full Name</label>
+                                <input type="text" data-model="personal.fullName" class="rezi-input"
+                                    placeholder="e.g. John Doe">
+                            </div>
+                            <div>
+                                <label class="rezi-label" data-i18n="label.headline">Headline</label>
+                                <input type="text" data-model="personal.headline" class="rezi-input"
+                                    placeholder="e.g. Senior Software Engineer">
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="rezi-label" data-i18n="label.email">Email</label>
+                                    <input type="email" data-model="personal.email" class="rezi-input"
+                                        placeholder="john@example.com">
+                                </div>
+                                <div>
+                                    <label class="rezi-label" data-i18n="label.phone">Phone</label>
+                                    <input type="text" data-model="personal.phone" class="rezi-input"
+                                        placeholder="+1 555 0101">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="rezi-label" data-i18n="label.location">Location</label>
+                                <input type="text" data-model="personal.location" class="rezi-input"
+                                    placeholder="City, Country">
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="rezi-label">LinkedIn</label>
+                                    <input type="text" data-model="personal.linkedin" class="rezi-input"
+                                        placeholder="linkedin.com/in/john">
+                                </div>
+                                <div>
+                                    <label class="rezi-label" data-i18n="label.website">Website</label>
+                                    <input type="text" data-model="personal.website" class="rezi-input"
+                                        placeholder="yourportfolio.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experience Section -->
+                <div id="section-experience" class="section-content hidden h-full flex flex-col">
+                    <div
+                        class="px-8 py-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900" data-i18n="section.experience.title">Experience
+                            </h2>
+                            <p class="text-sm text-gray-500" data-i18n="section.experience.desc">Add your work history.
+                            </p>
+                        </div>
+                        <button onclick="addExperience()" class="btn-primary flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> <span data-i18n="action.add_position">Add
+                                Position</span>
+                        </button>
+                    </div>
+                    <div id="experience-list" class="p-8 space-y-4 flex-1 overflow-y-auto">
+                        <!-- Dynamic Items -->
+                    </div>
+                </div>
+
+                <!-- Education Section -->
+                <div id="section-education" class="section-content hidden h-full flex flex-col">
+                    <div
+                        class="px-8 py-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900" data-i18n="section.education.title">Education
+                            </h2>
+                            <p class="text-sm text-gray-500" data-i18n="section.education.desc">Add your academic
+                                background.</p>
+                        </div>
+                        <button onclick="addEducation()" class="btn-primary flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> <span data-i18n="action.add_education">Add
+                                Education</span>
+                        </button>
+                    </div>
+                    <div id="education-list" class="p-8 space-y-4 flex-1 overflow-y-auto">
+                        <!-- Dynamic Items -->
+                    </div>
+                </div>
+
+                <!-- Skills Section -->
+                <div id="section-skills" class="section-content hidden h-full flex flex-col">
+                    <div class="px-8 py-6 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
+                        <h2 class="text-xl font-bold text-gray-900" data-i18n="section.skills.title">Skills</h2>
+                        <p class="text-sm text-gray-500" data-i18n="section.skills.desc">List your technical skills.</p>
+                    </div>
+                    <div class="p-8 flex-1 overflow-y-auto">
+                        <label class="rezi-label" data-i18n="label.skills_list">Skills (Comma Separated)</label>
+                        <textarea data-model="skills" class="rezi-input h-40 resize-none"
+                            placeholder="Java, Python, Leadership, Project Management..."></textarea>
+                        <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-100">
+                            <p class="text-xs text-gray-500 font-medium uppercase mb-2" data-i18n="label.suggestions">
+                                Suggestions</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span onclick="addSkill(this.innerText)"
+                                    class="px-2 py-1 bg-white border border-gray-200 rounded text-xs font-medium text-gray-600 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">Project
+                                    Management</span>
+                                <span onclick="addSkill(this.innerText)"
+                                    class="px-2 py-1 bg-white border border-gray-200 rounded text-xs font-medium text-gray-600 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">Strategic
+                                    Planning</span>
+                                <span onclick="addSkill(this.innerText)"
+                                    class="px-2 py-1 bg-white border border-gray-200 rounded text-xs font-medium text-gray-600 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">Team
+                                    Leadership</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- 3. RIGHT PANEL (Preview) -->
+            <aside class="preview-panel custom-scrollbar relative">
+                <div class="absolute top-6 right-6 z-20 flex items-center gap-3">
+
+                    <!-- Language Selector -->
+                    <div class="relative group">
+                        <select id="language-select" onchange="changeLanguage(this.value)"
+                            class="appearance-none bg-white border border-gray-200 text-gray-700 text-xs font-medium py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black cursor-pointer hover:border-gray-300 transition-colors">
+                            <option value="en">🇺🇸 English</option>
+                            <option value="tr">🇹🇷 Türkçe</option>
+                            <option value="ru">🇷🇺 Русский</option>
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="pt">🇵🇹 Português</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+
+                    <!-- Bell Icon -->
+                    <button
+                        class="bg-white p-2 rounded-md border border-gray-200 text-gray-500 hover:text-black hover:border-gray-300 shadow-sm transition-colors relative">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        <span
+                            class="absolute top-1.5 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
+                    </button>
+
+                    <!-- Download Button -->
+                    <button onclick="downloadPdf()" class="btn-primary shadow-lg flex items-center gap-2"
+                        title="Save as PDF">
+                        <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="action.download_pdf">Download
+                            PDF</span>
+                    </button>
+                </div>
+
+                <div id="resume-preview-content" class="resume-sheet">
+                    <!-- Preview Content -->
+                </div>
+            </aside>
+
+        </div>
+
+        <script src="config.js"></script>
+        <script src="app.js"></script>
+        <script>
+            lucide.createIcons();
+        </script>
+</body>
+
+</html>
