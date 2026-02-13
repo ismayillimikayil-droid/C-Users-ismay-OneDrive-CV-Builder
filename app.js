@@ -68,7 +68,14 @@ const store = {
 
     setState(s) {
         this.state = { ...this.state, ...s };
-        try { localStorage.setItem('resumeState', JSON.stringify(this.state)); } catch { }
+        try {
+            localStorage.setItem('resumeState', JSON.stringify(this.state));
+        } catch (e) {
+            console.error('Storage Error:', e);
+            if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+                alert('⚠️ Storage Full! Your CV is too large (likely due to the photo). Please upload a smaller photo or remove it to save changes.');
+            }
+        }
         this.notify();
     },
 
@@ -172,20 +179,53 @@ window.handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-        alert('File size too big. Max 2MB allowed.');
+    // 1. Basic Size Check (Max 4MB initial check)
+    if (file.size > 4 * 1024 * 1024) {
+        alert('File size too big. Please choose an image under 4MB.');
         return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-        const base64 = event.target.result;
-        store.setState({
-            personal: {
-                ...store.state.personal,
-                photo: base64
+        // 2. Compress Image Logic
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Max dimensions
+            const MAX_WIDTH = 300;
+            const MAX_HEIGHT = 300;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
             }
-        });
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Export as compressed JPEG
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+            store.setState({
+                personal: {
+                    ...store.state.personal,
+                    photo: compressedBase64
+                }
+            });
+        };
     };
     reader.readAsDataURL(file);
 };
